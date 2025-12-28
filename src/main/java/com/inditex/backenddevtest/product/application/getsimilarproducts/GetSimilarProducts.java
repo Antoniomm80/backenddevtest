@@ -15,7 +15,7 @@ public class GetSimilarProducts {
         this.similarProductsService = similarProductsService;
     }
 
-    List<ProductDetail> handle(SimilarProductQuery query) {
+    public List<ProductDetail> handle(SimilarProductQuery query) {
         List<ProductId> similarProducts = similarProductsService.findSimilarProductsByProductId(new ProductId(query.productId()));
 
         return similarProducts.stream()

@@ -35,7 +35,7 @@ class SimilarProductsServiceImplTest {
 
         wireMockServer.stubFor(get(urlPathTemplate("/product/{productId}")).withPathParam("productId", equalTo(SIMILAR_PRODUCT_ID_UNDER_TEST))
                                                                            .willReturn(aResponse().withHeader("Content-Type", "application/json")
-                                                                                                  .withBodyFile("product-detail.json")));
+                                                                                                  .withBodyFile("product-detail-4.json")));
     }
 
     @AfterEach

@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@SpringBootTest(properties = { "product.api.url=http://localhost:8000" })
-@EnableWireMock(@ConfigureWireMock(port = 8000))
+@SpringBootTest(properties = { "product.api.url=${wiremock.server.baseUrl}" })
+@EnableWireMock(@ConfigureWireMock)
 public @interface IntegrationTest {
 }
