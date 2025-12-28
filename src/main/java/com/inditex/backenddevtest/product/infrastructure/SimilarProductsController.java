@@ -23,11 +23,8 @@ class SimilarProductsController {
     ResponseEntity<List<SimilarProductResponse>> getSimilarProducts(@PathVariable String productId) {
         List<SimilarProductResponse> response = getSimilarProducts.handle(new SimilarProductQuery(productId))
                                                                   .stream()
-                                                                  .map(sp -> new SimilarProductResponse(sp.id()
-                                                                                                          .getId(), sp.name()
-                                                                                                                      .name(), sp.price()
-                                                                                                                                 .price(),
-                                                                          sp.availability()))
+                                                                  .map(sp -> new SimilarProductResponse(sp.getId(), sp.getName(), sp.getPrice(),
+                                                                          sp.isAvailable()))
                                                                   .toList();
 
         return ResponseEntity.ok(response);

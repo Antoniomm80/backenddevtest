@@ -17,7 +17,7 @@ class SimilarProductsServiceImpl implements SimilarProductsService {
 
     @Override
     public List<ProductId> findSimilarProductsByProductId(ProductId productId) {
-        return similarProductsWebClient.getSimilarProductIds(productId.getId())
+        return similarProductsWebClient.getSimilarProductIds(productId.id())
                                        .stream()
                                        .map(ProductId::new)
                                        .toList();
@@ -25,7 +25,7 @@ class SimilarProductsServiceImpl implements SimilarProductsService {
 
     @Override
     public ProductDetail getProductDetailById(ProductId productId) {
-        ProductDetailResponse productDetailResponse = similarProductsWebClient.getProductDetail(productId.getId());
+        ProductDetailResponse productDetailResponse = similarProductsWebClient.getProductDetail(productId.id());
         return ProductDetail.of(productDetailResponse.id(), productDetailResponse.name(), productDetailResponse.price(),
                 productDetailResponse.availability());
     }

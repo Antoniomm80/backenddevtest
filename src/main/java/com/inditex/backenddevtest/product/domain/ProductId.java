@@ -6,8 +6,4 @@ public record ProductId(String id) {
             throw new IllegalArgumentException("Id cannot be null or blank");
         }
     }
-
-    public String getId() {
-        return id;
-    }
 }

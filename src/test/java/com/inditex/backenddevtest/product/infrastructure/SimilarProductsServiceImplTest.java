@@ -61,11 +61,9 @@ class SimilarProductsServiceImplTest {
         ProductDetail productDetail = similarProductsService.getProductDetailById(new ProductId(SIMILAR_PRODUCT_ID_UNDER_TEST));
 
         assertThat(productDetail).isNotNull();
-        assertThat(productDetail.name()
-                                .name()).isEqualTo("Boots");
-        assertThat(productDetail.price()
-                                .price()).isEqualByComparingTo("39.99");
-        assertThat(productDetail.availability()).isTrue();
+        assertThat(productDetail.getName()).isEqualTo("Boots");
+        assertThat(productDetail.getPrice()).isEqualByComparingTo("39.99");
+        assertThat(productDetail.isAvailable()).isTrue();
     }
 
 }
