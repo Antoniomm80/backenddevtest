@@ -1,6 +1,7 @@
 package com.inditex.backenddevtest.product.application.getsimilarproducts;
 
 import com.inditex.backenddevtest.product.domain.ProductDetail;
+import com.inditex.backenddevtest.product.domain.ProductId;
 import com.inditex.backenddevtest.product.domain.SimilarProductsService;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,11 @@ public class GetSimilarProducts {
         this.similarProductsService = similarProductsService;
     }
 
-    List<ProductDetail> handle(SimilarProductQuery query){
-        return List.of();
+    List<ProductDetail> handle(SimilarProductQuery query) {
+        List<ProductId> similarProducts = similarProductsService.findSimilarProductsByProductId(new ProductId(query.productId()));
+
+        return similarProducts.stream()
+                              .map(similarProductsService::getProductDetailById)
+                              .toList();
     }
 }
