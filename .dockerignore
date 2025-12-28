@@ -1,0 +1,40 @@
+# Build output
+target/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Documentation
+*.md
+LICENSE
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Scripts
+*.sh
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Test reports
+test-results/
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
