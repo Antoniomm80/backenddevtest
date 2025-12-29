@@ -1,4 +1,4 @@
-package com.inditex.backenddevtest.config;
+package com.inditex.backenddevtest.product.infrastructure.config;
 
 import com.inditex.backenddevtest.product.domain.ProductNotFoundException;
 import com.inditex.backenddevtest.product.domain.ProductServiceException;
@@ -14,15 +14,15 @@ public class ProductFeignErrorDecoder implements ErrorDecoder {
 
     @Override
     public Exception decode(String methodKey, Response response) {
-        String productId = extractProductIdFromRequest(response.request().url());
+        String productId = extractProductIdFromRequest(response.request()
+                                                               .url());
 
         if (response.status() == 404) {
             return new ProductNotFoundException(productId);
         }
 
         if (response.status() >= 500) {
-            return new ProductServiceException(productId,
-                "Upstream service returned " + response.status());
+            return new ProductServiceException(productId, "Upstream service returned " + response.status());
         }
 
         return defaultDecoder.decode(methodKey, response);

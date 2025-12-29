@@ -1,4 +1,4 @@
-package com.inditex.backenddevtest.config;
+package com.inditex.backenddevtest.product.infrastructure.config;
 
 import feign.Logger;
 import feign.Request;

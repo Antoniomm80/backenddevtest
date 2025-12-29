@@ -1,6 +1,6 @@
 package com.inditex.backenddevtest.product.infrastructure;
 
-import com.inditex.backenddevtest.config.FeignConfig;
+import com.inditex.backenddevtest.product.infrastructure.config.FeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
