@@ -2,6 +2,9 @@ package com.inditex.backenddevtest.config;
 
 import feign.Logger;
 import feign.Request;
+import feign.Retryer;
+import feign.codec.ErrorDecoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,8 +13,14 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class FeignConfig {
 
-    private static final int FIVE_SECONDS = 5;
-    private static final int TEN_SECONDS = 10;
+    private final int connectTimeout;
+    private final int readTimeout;
+
+    public FeignConfig(@Value("${product.api.connection-timeout.seconds}") int connectTimeout,
+            @Value("${product.api.read-timeout.seconds}") int readTimeout) {
+        this.connectTimeout = connectTimeout;
+        this.readTimeout = readTimeout;
+    }
 
     @Bean
     public Logger.Level feignLoggerLevel() {
@@ -20,10 +29,16 @@ public class FeignConfig {
 
     @Bean
     public Request.Options requestOptions() {
-        return new Request.Options(
-            FIVE_SECONDS,TimeUnit.SECONDS,
-            TEN_SECONDS,TimeUnit.SECONDS,
-                false
-        );
+        return new Request.Options(connectTimeout, TimeUnit.SECONDS, readTimeout, TimeUnit.SECONDS, false);
+    }
+
+    @Bean
+    public ErrorDecoder errorDecoder() {
+        return new ProductFeignErrorDecoder();
+    }
+
+    @Bean
+    public Retryer retryer() {
+        return Retryer.NEVER_RETRY;
     }
 }

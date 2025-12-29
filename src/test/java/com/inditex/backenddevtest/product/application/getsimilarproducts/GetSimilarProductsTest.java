@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static com.inditex.backenddevtest.product.domain.ProductIdsMother.someProductIds;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,9 +26,9 @@ class GetSimilarProductsTest {
     void getSimilarProductsShouldReturnListOfSimilarProductDetails() {
         given(similarProductsService.findSimilarProductsByProductId(any())).willReturn(someProductIds());
 
-        given(similarProductsService.getProductDetailById(new ProductId("2"))).willReturn(aDressProduct());
-        given(similarProductsService.getProductDetailById(new ProductId("3"))).willReturn(aBlazerProduct());
-        given(similarProductsService.getProductDetailById(new ProductId("4"))).willReturn(aBootsProduct());
+        given(similarProductsService.getProductDetailById(new ProductId("2"))).willReturn(Optional.of(aDressProduct()));
+        given(similarProductsService.getProductDetailById(new ProductId("3"))).willReturn(Optional.of(aBlazerProduct()));
+        given(similarProductsService.getProductDetailById(new ProductId("4"))).willReturn(Optional.of(aBootsProduct()));
 
         List<ProductDetail> similarProductDetails = getSimilarProducts.handle(new SimilarProductQuery("1"));
 

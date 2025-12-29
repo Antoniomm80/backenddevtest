@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.wiremock.spring.InjectWireMock;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SimilarProductsServiceImplTest {
     private static final String PRODUCT_ID_UNDER_TEST = "1";
     private static final String SIMILAR_PRODUCT_ID_UNDER_TEST = "4";
+    private static final String SIMILAR_PRODUCT_NOT_FOUND_ID = "5";
+    private static final String SIMILAR_PRODUCT_UPSTREAM_SERVER_ERROR_ID = "6";
     @Autowired
     private SimilarProductsServiceImpl similarProductsService;
 
@@ -36,6 +39,12 @@ class SimilarProductsServiceImplTest {
         wireMockServer.stubFor(get(urlPathTemplate("/product/{productId}")).withPathParam("productId", equalTo(SIMILAR_PRODUCT_ID_UNDER_TEST))
                                                                            .willReturn(aResponse().withHeader("Content-Type", "application/json")
                                                                                                   .withBodyFile("product-detail-4.json")));
+
+        wireMockServer.stubFor(get(urlPathTemplate("/product/{productId}")).withPathParam("productId", equalTo(SIMILAR_PRODUCT_NOT_FOUND_ID))
+                                                                           .willReturn(aResponse().withStatus(404)));
+        wireMockServer.stubFor(
+                get(urlPathTemplate("/product/{productId}")).withPathParam("productId", equalTo(SIMILAR_PRODUCT_UPSTREAM_SERVER_ERROR_ID))
+                                                            .willReturn(aResponse().withStatus(500)));
     }
 
     @AfterEach
@@ -58,12 +67,50 @@ class SimilarProductsServiceImplTest {
     @Test
     @DisplayName("La llamada al detalle de un producto por id, debe devolver su nombre, su precio y disponibilidad")
     void getProductDetailByIdShouldReturnProductDetailFullyPopulated() {
-        ProductDetail productDetail = similarProductsService.getProductDetailById(new ProductId(SIMILAR_PRODUCT_ID_UNDER_TEST));
+        Optional<ProductDetail> productDetail = similarProductsService.getProductDetailById(new ProductId(SIMILAR_PRODUCT_ID_UNDER_TEST));
 
-        assertThat(productDetail).isNotNull();
-        assertThat(productDetail.getName()).isEqualTo("Boots");
-        assertThat(productDetail.getPrice()).isEqualByComparingTo("39.99");
-        assertThat(productDetail.isAvailable()).isTrue();
+        assertThat(productDetail).isNotEmpty()
+                                 .hasValueSatisfying(pd -> {
+                                     assertThat(pd).isNotNull();
+                                     assertThat(pd.getName()).isEqualTo("Boots");
+                                     assertThat(pd.getPrice()).isEqualByComparingTo("39.99");
+                                     assertThat(pd.isAvailable()).isTrue();
+                                 });
+
+    }
+
+    @Test
+    @DisplayName("Una llamada al detalle de un producto inexistente debe devolver un Optional vacio")
+    void givenNotFoundCodeFromUpstreamShouldReturnEmptyOptional() {
+        Optional<ProductDetail> productDetail = similarProductsService.getProductDetailById(new ProductId(SIMILAR_PRODUCT_NOT_FOUND_ID));
+
+        assertThat(productDetail).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Una llamada al detalle que provoca un error 500 en el upstream server debe devolver un Optional vacio")
+    void givenError500CodeFromUpstreamShouldReturnEmptyOptional() {
+        Optional<ProductDetail> productDetail = similarProductsService.getProductDetailById(new ProductId(SIMILAR_PRODUCT_UPSTREAM_SERVER_ERROR_ID));
+
+        assertThat(productDetail).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Una llamada que sobrepasa el timeout configurado debe devolver un Optional vacio")
+    void givenReadTimeoutFromUpstreamShouldReturnEmptyOptional() {
+        String timeoutProductId = "999";
+
+        // Delay longer than 10s read timeout = SocketTimeoutException
+        wireMockServer.stubFor(get(urlPathTemplate("/product/{productId}")).withPathParam("productId", equalTo(timeoutProductId))
+                                                                           .willReturn(aResponse().withStatus(200)
+                                                                                                  .withHeader("Content-Type", "application/json")
+                                                                                                  .withBody(
+                                                                                                          "{\"id\":\"999\",\"name\":\"Slow Product\"}")
+                                                                                                  .withFixedDelay(15000)));
+
+        Optional<ProductDetail> productDetail = similarProductsService.getProductDetailById(new ProductId(timeoutProductId));
+
+        assertThat(productDetail).isEmpty();
     }
 
 }
