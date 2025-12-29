@@ -29,6 +29,9 @@ class SimilarProductsServiceImpl implements SimilarProductsService {
     public Optional<ProductDetail> getProductDetailById(ProductId productId) {
         try {
             ProductDetailResponse productDetailResponse = similarProductsWebClient.getProductDetail(productId.id());
+            if (productDetailResponse == null) {
+                return Optional.empty();
+            }
             return Optional.of(ProductDetail.of(productDetailResponse.id(), productDetailResponse.name(), productDetailResponse.price(),
                     productDetailResponse.availability()));
         } catch (ProductNotFoundException pnfe) {
