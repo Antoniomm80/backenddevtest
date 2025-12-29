@@ -15,8 +15,8 @@ RUN mvn dependency:go-offline
 # Copy source code
 COPY src ./src
 
-# Run tests
-RUN mvn test
+# Run tests with fail-fast behavior
+RUN mvn test --fail-fast -e
 
 # Build the application (skip tests as they already ran)
 RUN mvn package -DskipTests

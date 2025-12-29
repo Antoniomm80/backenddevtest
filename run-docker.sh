@@ -4,6 +4,12 @@
 echo "Building Docker image..."
 docker build -t backenddevtest:latest .
 
+# Exit if build failed
+if [ $? -ne 0 ]; then
+    echo "Docker build failed. Exiting."
+    exit 1
+fi
+
 # Docker Compose creates a network named <directory>_default
 # Connect to it so the app can reach the simulado service
 NETWORK_NAME="backenddevtest-main_default"

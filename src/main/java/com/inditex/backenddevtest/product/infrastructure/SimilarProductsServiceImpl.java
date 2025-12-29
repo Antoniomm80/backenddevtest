@@ -1,7 +1,6 @@
 package com.inditex.backenddevtest.product.infrastructure;
 
 import com.inditex.backenddevtest.product.domain.*;
-import feign.FeignException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -38,7 +37,7 @@ class SimilarProductsServiceImpl implements SimilarProductsService {
         } catch (ProductServiceException pse) {
             log.error("Product service error for: {}", productId.id(), pse);
             return Optional.empty();
-        } catch (FeignException fe) {
+        } catch (Exception fe) {
             log.error("Connection error for: {}", productId.id(), fe);
             return Optional.empty();
         }

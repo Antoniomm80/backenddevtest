@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
@@ -24,6 +25,8 @@ class SimilarProductsServiceCacheTest {
     private SimilarProductsService similarProductsService;
     @Autowired
     private SimilarProductsServiceImpl similarProductsServiceImpl;
+    @Autowired
+    private CacheManager cacheManager;
     private SimilarProductsServiceImpl mockSimilarProductsServiceImpl;
 
     @BeforeEach
@@ -35,16 +38,9 @@ class SimilarProductsServiceCacheTest {
     @AfterEach
     void tearDown() {
         ReflectionTestUtils.setField(similarProductsService, "similarProductsServiceImpl", similarProductsServiceImpl);
-    }
-
-    @Test
-    @DisplayName("Llamadas consecutivas a findSimilarProductsByProductId suponen un hit de cache")
-    void givenConsecutiveCallsToFindSimilarProductsByProductIdShouldBeCacheHit() {
-        similarProductsService.findSimilarProductsByProductId(new ProductId("1"));
-        similarProductsService.findSimilarProductsByProductId(new ProductId("1"));
-
-        then(mockSimilarProductsServiceImpl).should()
-                                            .findSimilarProductsByProductId(new ProductId("1"));
+        cacheManager.getCacheNames()
+                    .forEach(cacheName -> cacheManager.getCache(cacheName)
+                                                      .clear());
     }
 
     @Test

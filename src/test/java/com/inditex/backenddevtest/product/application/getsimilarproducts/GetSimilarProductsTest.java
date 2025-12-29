@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 
 import static com.inditex.backenddevtest.product.domain.ProductIdsMother.someProductIds;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,7 +20,7 @@ import static org.mockito.BDDMockito.given;
 
 class GetSimilarProductsTest {
     private final SimilarProductsService similarProductsService = Mockito.mock(SimilarProductsService.class);
-    private final GetSimilarProducts getSimilarProducts = new GetSimilarProducts(similarProductsService);
+    private final GetSimilarProducts getSimilarProducts = new GetSimilarProducts(similarProductsService, Executors.newVirtualThreadPerTaskExecutor());
 
     @Test
     @DisplayName("La consulta de productos similares por código de producto debe devolver una lista de los detalles de producto similares")
