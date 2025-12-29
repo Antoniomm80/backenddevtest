@@ -1,9 +1,7 @@
 package com.inditex.backenddevtest.product.infrastructure;
 
 import com.inditex.backenddevtest.IntegrationTest;
-import com.inditex.backenddevtest.product.domain.ProductDetail;
-import com.inditex.backenddevtest.product.domain.ProductId;
-import com.inditex.backenddevtest.product.domain.SimilarProductsService;
+import com.inditex.backenddevtest.product.domain.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,9 +53,21 @@ class SimilarProductsServiceCacheTest {
     }
 
     @Test
-    @DisplayName("Llamadas consecutivas a getProductDetailById NO suponen un hit de cache si el dato es vacio")
-    void givenConsecutiveToGetProductDetailByIdCallsWithEmptyResultShouldNotBeCacheHit() {
-        given(mockSimilarProductsServiceImpl.getProductDetailById(new ProductId("1"))).willReturn(Optional.empty());
+    @DisplayName("Llamadas consecutivas a getProductDetailById suponen un hit de cache si se recibe un Product Not Found Exception")
+    void givenConsecutiveToGetProductDetailByIdCallsWithProductNotFoundExceptionShouldBeCacheHit() {
+        given(mockSimilarProductsServiceImpl.getProductDetailById(new ProductId("1"))).willThrow(new ProductNotFoundException("Product not found"));
+        similarProductsService.getProductDetailById(new ProductId("1"));
+        similarProductsService.getProductDetailById(new ProductId("1"));
+
+        then(mockSimilarProductsServiceImpl).should(times(1))
+                                            .getProductDetailById(new ProductId("1"));
+    }
+
+    @Test
+    @DisplayName("Llamadas consecutivas a getProductDetailById NO suponen un hit de cache si se recibe una Excepcion del upstream server")
+    void givenConsecutiveToGetProductDetailByIdCallsWithProductServiceExceptionShouldBeCacheMiss() {
+        given(mockSimilarProductsServiceImpl.getProductDetailById(new ProductId("1"))).willThrow(
+                new ProductServiceException("Upstream server error", new RuntimeException()));
         similarProductsService.getProductDetailById(new ProductId("1"));
         similarProductsService.getProductDetailById(new ProductId("1"));
 

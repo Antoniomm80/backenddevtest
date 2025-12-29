@@ -27,22 +27,17 @@ class SimilarProductsServiceImpl implements SimilarProductsService {
 
     @Override
     public Optional<ProductDetail> getProductDetailById(ProductId productId) {
-        try {
-            ProductDetailResponse productDetailResponse = similarProductsWebClient.getProductDetail(productId.id());
-            if (productDetailResponse == null) {
-                return Optional.empty();
-            }
-            return Optional.of(ProductDetail.of(productDetailResponse.id(), productDetailResponse.name(), productDetailResponse.price(),
-                    productDetailResponse.availability()));
-        } catch (ProductNotFoundException pnfe) {
-            log.info("Product not found: {}", productId.id());
-            return Optional.empty();
-        } catch (ProductServiceException pse) {
-            log.error("Product service error for: {}", productId.id(), pse);
-            return Optional.empty();
-        } catch (Exception fe) {
-            log.error("Connection error for: {}", productId.id(), fe);
+        ProductDetailResponse productDetailResponse = similarProductsWebClient.getProductDetail(productId.id());
+
+        if (productDetailResponse == null) {
             return Optional.empty();
         }
+
+        return Optional.of(ProductDetail.of(
+                productDetailResponse.id(),
+                productDetailResponse.name(),
+                productDetailResponse.price(),
+                productDetailResponse.availability()
+        ));
     }
 }
