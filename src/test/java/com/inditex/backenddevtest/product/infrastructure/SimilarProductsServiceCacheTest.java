@@ -1,7 +1,10 @@
 package com.inditex.backenddevtest.product.infrastructure;
 
 import com.inditex.backenddevtest.IntegrationTest;
-import com.inditex.backenddevtest.product.domain.*;
+import com.inditex.backenddevtest.product.domain.ProductDetail;
+import com.inditex.backenddevtest.product.domain.ProductId;
+import com.inditex.backenddevtest.product.domain.ProductServiceException;
+import com.inditex.backenddevtest.product.domain.SimilarProductsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,9 +56,9 @@ class SimilarProductsServiceCacheTest {
     }
 
     @Test
-    @DisplayName("Llamadas consecutivas a getProductDetailById suponen un hit de cache si se recibe un Product Not Found Exception")
-    void givenConsecutiveToGetProductDetailByIdCallsWithProductNotFoundExceptionShouldBeCacheHit() {
-        given(mockSimilarProductsServiceImpl.getProductDetailById(new ProductId("1"))).willThrow(new ProductNotFoundException("Product not found"));
+    @DisplayName("Llamadas consecutivas a getProductDetailById suponen un hit de cache con un contenido vacio")
+    void givenConsecutiveToGetProductDetailByIdCallsWithProductNotFoundExceptionShouldBeCacheHitWithOptionalEmpty() {
+        given(mockSimilarProductsServiceImpl.getProductDetailById(new ProductId("1"))).willReturn(Optional.empty());
         similarProductsService.getProductDetailById(new ProductId("1"));
         similarProductsService.getProductDetailById(new ProductId("1"));
 

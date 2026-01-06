@@ -1,5 +1,7 @@
 package com.inditex.backenddevtest.product.infrastructure;
 
+import com.inditex.backenddevtest.product.domain.ProductNotFoundException;
+import com.inditex.backenddevtest.product.domain.ProductServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.openfeign.FallbackFactory;
@@ -33,10 +35,24 @@ public class SimilarProductsFallbackFactory implements FallbackFactory<SimilarPr
             public ProductDetailResponse getProductDetail(String productId) {
                 if (isTimeoutException(cause)) {
                     backgroundCacheFetcher.triggerBackgroundFetch(new com.inditex.backenddevtest.product.domain.ProductId(productId));
+                    return null;
                 }
-                return null;
+                if (isNotFoundException(cause)) {
+                    return null;
+                }
+                throw new ProductServiceException(productId, cause);
             }
         };
+    }
+
+    private boolean isNotFoundException(Throwable e) {
+        if (e == null) {
+            return false;
+        }
+        if (e instanceof ProductNotFoundException) {
+            return true;
+        }
+        return isNotFoundException(e.getCause());
     }
 
     private boolean isTimeoutException(Throwable e) {

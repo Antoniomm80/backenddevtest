@@ -2,7 +2,6 @@ package com.inditex.backenddevtest.product.infrastructure;
 
 import com.inditex.backenddevtest.product.domain.ProductDetail;
 import com.inditex.backenddevtest.product.domain.ProductId;
-import com.inditex.backenddevtest.product.domain.ProductNotFoundException;
 import com.inditex.backenddevtest.product.domain.SimilarProductsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +48,6 @@ class SimilarProductsServiceCache implements SimilarProductsService {
             Optional<ProductDetail> result = similarProductsServiceImpl.getProductDetailById(productId);
             cache.put(cacheKey, result);
             return result;
-        } catch (ProductNotFoundException e) {
-            Optional<ProductDetail> emptyResult = Optional.empty();
-            cache.put(cacheKey, emptyResult);
-            return emptyResult;
-
         } catch (Exception e) {
             return Optional.empty();
         }

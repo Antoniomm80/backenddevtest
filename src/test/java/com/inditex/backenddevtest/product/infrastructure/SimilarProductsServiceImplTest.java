@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.inditex.backenddevtest.IntegrationTest;
 import com.inditex.backenddevtest.product.domain.ProductDetail;
 import com.inditex.backenddevtest.product.domain.ProductId;
+import com.inditex.backenddevtest.product.domain.ProductServiceException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,7 @@ import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @IntegrationTest
 class SimilarProductsServiceImplTest {
@@ -88,18 +90,20 @@ class SimilarProductsServiceImplTest {
     }
 
     @Test
-    @DisplayName("Una llamada al detalle que provoca un error 500 en el upstream server debe devolver un Optional vacio")
-    void givenError500CodeFromUpstreamShouldReturnEmptyOptional() {
-        Optional<ProductDetail> productDetail = similarProductsService.getProductDetailById(new ProductId(SIMILAR_PRODUCT_UPSTREAM_SERVER_ERROR_ID));
+    @DisplayName("Una llamada al detalle que provoca un error 500 en el upstream server debe lanzar una excepción ProductServiceException")
+    void givenError500CodeFromUpstreamShouldThrowProductServiceException() {
+        assertThatThrownBy(() -> {
+            similarProductsService.getProductDetailById(new ProductId(SIMILAR_PRODUCT_UPSTREAM_SERVER_ERROR_ID));
 
-        assertThat(productDetail).isEmpty();
+        }).isInstanceOf(ProductServiceException.class);
+
     }
 
     @Test
     @DisplayName("Una llamada que sobrepasa el timeout configurado debe devolver un Optional vacio")
     void givenReadTimeoutFromUpstreamShouldReturnEmptyOptional() {
         String timeoutProductId = "999";
-        
+
         wireMockServer.stubFor(get(urlPathTemplate("/product/{productId}")).withPathParam("productId", equalTo(timeoutProductId))
                                                                            .willReturn(aResponse().withStatus(200)
                                                                                                   .withHeader("Content-Type", "application/json")
