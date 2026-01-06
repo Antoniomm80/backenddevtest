@@ -1,6 +1,8 @@
 package com.inditex.backenddevtest.product.infrastructure;
 
-import com.inditex.backenddevtest.product.domain.*;
+import com.inditex.backenddevtest.product.domain.ProductDetail;
+import com.inditex.backenddevtest.product.domain.ProductId;
+import com.inditex.backenddevtest.product.domain.SimilarProductsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -12,9 +14,11 @@ import java.util.Optional;
 class SimilarProductsServiceImpl implements SimilarProductsService {
     private static final Logger log = LoggerFactory.getLogger(SimilarProductsServiceImpl.class);
     private final SimilarProductsWebClient similarProductsWebClient;
+    private final ParallelExecutor parallelExecutor;
 
-    SimilarProductsServiceImpl(SimilarProductsWebClient similarProductsWebClient) {
+    SimilarProductsServiceImpl(SimilarProductsWebClient similarProductsWebClient, ParallelExecutor parallelExecutor) {
         this.similarProductsWebClient = similarProductsWebClient;
+        this.parallelExecutor = parallelExecutor;
     }
 
     @Override
@@ -33,11 +37,13 @@ class SimilarProductsServiceImpl implements SimilarProductsService {
             return Optional.empty();
         }
 
-        return Optional.of(ProductDetail.of(
-                productDetailResponse.id(),
-                productDetailResponse.name(),
-                productDetailResponse.price(),
-                productDetailResponse.availability()
-        ));
+        return Optional.of(ProductDetail.of(productDetailResponse.id(), productDetailResponse.name(), productDetailResponse.price(),
+                productDetailResponse.availability()));
+    }
+
+    @Override
+
+    public List<ProductDetail> getProductDetailsByIds(List<ProductId> productIds) {
+        return parallelExecutor.executeInParallel(productIds, this::getProductDetailById);
     }
 }

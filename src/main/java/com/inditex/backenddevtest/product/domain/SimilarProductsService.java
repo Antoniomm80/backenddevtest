@@ -10,4 +10,6 @@ public interface SimilarProductsService {
     List<ProductId> findSimilarProductsByProductId(ProductId productId);
 
     Optional<ProductDetail> getProductDetailById(ProductId productId);
+
+    List<ProductDetail> getProductDetailsByIds(List<ProductId> productIds);
 }

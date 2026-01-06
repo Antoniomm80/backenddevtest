@@ -10,8 +10,6 @@ import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.Executors;
 
 import static com.inditex.backenddevtest.product.domain.ProductIdsMother.someProductIds;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,16 +18,16 @@ import static org.mockito.BDDMockito.given;
 
 class GetSimilarProductsTest {
     private final SimilarProductsService similarProductsService = Mockito.mock(SimilarProductsService.class);
-    private final GetSimilarProducts getSimilarProducts = new GetSimilarProducts(similarProductsService, Executors.newVirtualThreadPerTaskExecutor());
+    private final GetSimilarProducts getSimilarProducts = new GetSimilarProducts(similarProductsService);
 
     @Test
     @DisplayName("La consulta de productos similares por código de producto debe devolver una lista de los detalles de producto similares")
     void getSimilarProductsShouldReturnListOfSimilarProductDetails() {
-        given(similarProductsService.findSimilarProductsByProductId(any())).willReturn(someProductIds());
+        List<ProductId> productIds = someProductIds();
+        given(similarProductsService.findSimilarProductsByProductId(any())).willReturn(productIds);
+        List<ProductDetail> productsList = List.of(aDressProduct(), aBlazerProduct(), aBootsProduct());
 
-        given(similarProductsService.getProductDetailById(new ProductId("2"))).willReturn(Optional.of(aDressProduct()));
-        given(similarProductsService.getProductDetailById(new ProductId("3"))).willReturn(Optional.of(aBlazerProduct()));
-        given(similarProductsService.getProductDetailById(new ProductId("4"))).willReturn(Optional.of(aBootsProduct()));
+        given(similarProductsService.getProductDetailsByIds(productIds)).willReturn(productsList);
 
         List<ProductDetail> similarProductDetails = getSimilarProducts.handle(new SimilarProductQuery("1"));
 

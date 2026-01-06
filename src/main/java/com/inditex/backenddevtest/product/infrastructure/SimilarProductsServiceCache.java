@@ -21,10 +21,13 @@ class SimilarProductsServiceCache implements SimilarProductsService {
     private static final String CACHE_NAME = "productDetails";
 
     private final SimilarProductsServiceImpl similarProductsServiceImpl;
+    private final ParallelExecutor parallelExecutor;
     private final Cache cache;
 
-    SimilarProductsServiceCache(SimilarProductsServiceImpl similarProductsServiceImpl, CacheManager cacheManager) {
+    SimilarProductsServiceCache(SimilarProductsServiceImpl similarProductsServiceImpl, ParallelExecutor parallelExecutor,
+            CacheManager cacheManager) {
         this.similarProductsServiceImpl = similarProductsServiceImpl;
+        this.parallelExecutor = parallelExecutor;
         this.cache = cacheManager.getCache(CACHE_NAME);
     }
 
@@ -54,5 +57,10 @@ class SimilarProductsServiceCache implements SimilarProductsService {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public List<ProductDetail> getProductDetailsByIds(List<ProductId> productIds) {
+        return parallelExecutor.executeInParallel(productIds, this::getProductDetailById);
     }
 }
