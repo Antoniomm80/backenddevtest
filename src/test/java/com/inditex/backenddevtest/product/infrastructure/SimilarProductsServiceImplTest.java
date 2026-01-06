@@ -99,8 +99,7 @@ class SimilarProductsServiceImplTest {
     @DisplayName("Una llamada que sobrepasa el timeout configurado debe devolver un Optional vacio")
     void givenReadTimeoutFromUpstreamShouldReturnEmptyOptional() {
         String timeoutProductId = "999";
-
-        // Delay longer than 10s read timeout = SocketTimeoutException
+        
         wireMockServer.stubFor(get(urlPathTemplate("/product/{productId}")).withPathParam("productId", equalTo(timeoutProductId))
                                                                            .willReturn(aResponse().withStatus(200)
                                                                                                   .withHeader("Content-Type", "application/json")

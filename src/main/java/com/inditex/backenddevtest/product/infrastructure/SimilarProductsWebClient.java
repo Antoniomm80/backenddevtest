@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "product-api", url = "${product.api.url}", configuration = FeignConfig.class, fallback = SimilarProductsFallBack.class)
+@FeignClient(name = "product-api", url = "${product.api.url}", configuration = FeignConfig.class, fallbackFactory = SimilarProductsFallbackFactory.class)
 public interface SimilarProductsWebClient {
 
     @GetMapping("/product/{productId}/similarids")
