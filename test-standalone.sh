@@ -1,3 +1,3 @@
 #! /bin/sh
 
-mvn clean test
+mvn clean verify
