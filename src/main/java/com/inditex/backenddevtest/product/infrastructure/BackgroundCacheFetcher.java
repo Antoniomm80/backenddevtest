@@ -17,10 +17,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
+import static com.inditex.backenddevtest.product.infrastructure.config.CacheConfig.CACHE_NAME;
+
 @Component
 public class BackgroundCacheFetcher {
     private static final Logger log = LoggerFactory.getLogger(BackgroundCacheFetcher.class);
-    private static final String CACHE_NAME = "productDetails";
 
     private final RestTemplate restTemplate;
     private final String productApiUrl;

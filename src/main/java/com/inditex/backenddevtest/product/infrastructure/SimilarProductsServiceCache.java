@@ -13,18 +13,18 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 
+import static com.inditex.backenddevtest.product.infrastructure.config.CacheConfig.CACHE_NAME;
+
 @Component
 @Primary
 class SimilarProductsServiceCache implements SimilarProductsService {
     private static final Logger log = LoggerFactory.getLogger(SimilarProductsServiceCache.class);
-    private static final String CACHE_NAME = "productDetails";
 
     private final SimilarProductsServiceImpl similarProductsServiceImpl;
     private final ParallelExecutor parallelExecutor;
     private final Cache cache;
 
-    SimilarProductsServiceCache(SimilarProductsServiceImpl similarProductsServiceImpl, ParallelExecutor parallelExecutor,
-            CacheManager cacheManager) {
+    SimilarProductsServiceCache(SimilarProductsServiceImpl similarProductsServiceImpl, ParallelExecutor parallelExecutor, CacheManager cacheManager) {
         this.similarProductsServiceImpl = similarProductsServiceImpl;
         this.parallelExecutor = parallelExecutor;
         this.cache = cacheManager.getCache(CACHE_NAME);

@@ -79,7 +79,9 @@ paralelo
 
 Como última mejora, intentado mejorar la calidad de los datos almacenados en cache, se ha implementado un mecanismo de background fetching que
 hace un último intento de obtener el detalle de un producto por id desde el upstream server si ha fallado la obtención del mismo por timeout de la
-conexión. Se intenta con un timeout mayor y una única vez.
+conexión. Se intenta con un timeout mayor y una única vez. Este cliente web es más sencillo, está implementado con rest template y no tiene retriers
+ni
+circuit breakers.
 
 ## Testing
 

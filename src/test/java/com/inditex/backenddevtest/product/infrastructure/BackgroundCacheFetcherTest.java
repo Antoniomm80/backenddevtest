@@ -1,53 +1,51 @@
 package com.inditex.backenddevtest.product.infrastructure;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.inditex.backenddevtest.IntegrationTest;
 import com.inditex.backenddevtest.product.domain.ProductId;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestTemplate;
+import org.wiremock.spring.InjectWireMock;
 
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+@IntegrationTest
 class BackgroundCacheFetcherTest {
 
-    private static final String API_URL = "http://localhost:3001";
-
-    private RestTemplate restTemplate;
-    private MockRestServiceServer mockServer;
-    private CacheManager cacheManager;
-    private Cache cache;
-    private ExecutorService virtualThreadExecutor;
+    @Autowired
     private BackgroundCacheFetcher backgroundCacheFetcher;
+
+    @InjectWireMock
+    private WireMockServer wireMockServer;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    private Cache cache;
 
     @BeforeEach
     void setUp() {
-        restTemplate = new RestTemplate();
-        mockServer = MockRestServiceServer.createServer(restTemplate);
-        cacheManager = mock(CacheManager.class);
-        cache = mock(Cache.class);
-        virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        cache = cacheManager.getCache("productDetails");
+        if (cache != null) {
+            cache.clear();
+        }
+    }
 
-        given(cacheManager.getCache("productDetails")).willReturn(cache);
-        backgroundCacheFetcher = new BackgroundCacheFetcher(restTemplate, cacheManager, virtualThreadExecutor, API_URL);
+    @AfterEach
+    void tearDown() {
+        wireMockServer.resetAll();
+        if (cache != null) {
+            cache.clear();
+        }
     }
 
     @Test
@@ -58,17 +56,19 @@ class BackgroundCacheFetcherTest {
                 {"id": "1", "name": "Test Product", "price": 10, "availability": true}
                 """;
 
-        mockServer.expect(requestTo(API_URL + "/product/1"))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
+        wireMockServer.stubFor(get(urlPathEqualTo("/product/1")).willReturn(aResponse().withStatus(200)
+                                                                                       .withHeader("Content-Type", "application/json")
+                                                                                       .withBody(responseJson)));
 
         backgroundCacheFetcher.triggerBackgroundFetch(productId);
 
         await().atMost(2, TimeUnit.SECONDS)
-                .untilAsserted(() -> {
-                    mockServer.verify();
-                    verify(cache).put(eq("1"), any(Optional.class));
-                });
+               .untilAsserted(() -> {
+                   wireMockServer.verify(getRequestedFor(urlPathEqualTo("/product/1")));
+                   Cache.ValueWrapper cachedValue = cache.get("1");
+                   assertThat(cachedValue).isNotNull();
+                   assertThat(cachedValue.get()).isNotNull();
+               });
     }
 
     @Test
@@ -76,16 +76,15 @@ class BackgroundCacheFetcherTest {
     void shouldNotCacheWhenProductNotFound() {
         ProductId productId = new ProductId("404");
 
-        mockServer.expect(requestTo(API_URL + "/product/404"))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+        wireMockServer.stubFor(get(urlPathEqualTo("/product/404")).willReturn(aResponse().withStatus(404)));
 
         backgroundCacheFetcher.triggerBackgroundFetch(productId);
 
         await().atMost(2, TimeUnit.SECONDS)
-                .untilAsserted(() -> mockServer.verify());
+               .untilAsserted(() -> wireMockServer.verify(getRequestedFor(urlPathEqualTo("/product/404"))));
 
-        verify(cache, never()).put(eq("404"), any());
+        Cache.ValueWrapper cachedValue = cache.get("404");
+        assertThat(cachedValue).isNull();
     }
 
     @Test
@@ -93,15 +92,14 @@ class BackgroundCacheFetcherTest {
     void shouldNotCacheOnOtherExceptions() {
         ProductId productId = new ProductId("500");
 
-        mockServer.expect(requestTo(API_URL + "/product/500"))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+        wireMockServer.stubFor(get(urlPathEqualTo("/product/500")).willReturn(aResponse().withStatus(500)));
 
         backgroundCacheFetcher.triggerBackgroundFetch(productId);
 
         await().atMost(2, TimeUnit.SECONDS)
-                .untilAsserted(() -> mockServer.verify());
+               .untilAsserted(() -> wireMockServer.verify(getRequestedFor(urlPathEqualTo("/product/500"))));
 
-        verify(cache, never()).put(eq("500"), any());
+        Cache.ValueWrapper cachedValue = cache.get("500");
+        assertThat(cachedValue).isNull();
     }
 }
